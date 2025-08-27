@@ -1,0 +1,64 @@
+window.Webflow ||= [];
+window.Webflow.push(() => {
+  if (window.innerWidth < 992) return;
+
+  const stepsBox = document.querySelector('.steps-box');
+  const stepItems = document.querySelectorAll('.step-item');
+  let autoSwitchTimeout;
+  let currentIndex = 0;
+
+  function updateActiveStep(newIndex) {
+    stepItems.forEach((item, index) => {
+      const isActive = index === newIndex;
+      item.setAttribute('step-status', isActive ? 'active' : '');
+
+      const stepNumber = item.querySelector('.step-number');
+      const markerValue = item.querySelector('.step-marker-value');
+      const stepImage = item.querySelector('.step-image');
+
+      [stepNumber, markerValue, stepImage].forEach(el => {
+        if (el) el.classList.toggle('is-active', isActive);
+      });
+
+      if (isActive) currentIndex = index;
+    });
+  }
+
+  stepItems.forEach((item, index) => {
+    item.addEventListener('click', () => {
+      updateActiveStep(index);
+      restartAutoSwitch();
+    });
+  });
+
+  function startAutoSwitch() {
+    clearTimeout(autoSwitchTimeout);
+    autoSwitchTimeout = setTimeout(() => {
+      const nextIndex = (currentIndex + 1) % stepItems.length;
+      updateActiveStep(nextIndex);
+      startAutoSwitch();
+    }, 5000);
+  }
+
+  function stopAutoSwitch() {
+    clearTimeout(autoSwitchTimeout);
+  }
+
+  function restartAutoSwitch() {
+    stopAutoSwitch();
+    startAutoSwitch();
+  }
+
+  if (stepsBox) {
+    stepsBox.addEventListener('mouseenter', stopAutoSwitch);
+    stepsBox.addEventListener('mouseleave', restartAutoSwitch);
+  }
+
+  stepItems.forEach((item, index) => {
+    if (item.getAttribute('step-status') === 'active') {
+      updateActiveStep(index);
+    }
+  });
+
+  startAutoSwitch();
+});
